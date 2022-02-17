@@ -1,1 +1,41 @@
-fn main() {}
+use relay::{
+    AutoTestSubmissionRequest, AutoTestSubmissionResponse, SubmissionRequest, SubmissionResponse,
+};
+use tonic::{transport::Server, Request, Response, Status};
+
+pub mod relay {
+    tonic::include_proto!("core");
+}
+
+#[derive(Debug, Default)]
+pub struct Relay {}
+
+#[tonic::async_trait]
+impl relay::relay_service_server::RelayService for Relay {
+    async fn perform_auto_test(
+        &self,
+        request: Request<AutoTestSubmissionRequest>,
+    ) -> Result<Response<AutoTestSubmissionResponse>, Status> {
+        todo!()
+    }
+
+    async fn submit_work(
+        &self,
+        request: Request<SubmissionRequest>,
+    ) -> Result<Response<SubmissionResponse>, Status> {
+        todo!()
+    }
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let addr = "[::1]:50051".parse()?;
+    let relay = Relay::default();
+
+    Server::builder()
+        .add_service(relay::relay_service_server::RelayServiceServer::new(relay))
+        .serve(addr)
+        .await?;
+
+    Ok(())
+}
