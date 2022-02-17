@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package websocket;
+
+import "core.proto";
+
+message InitFrame {
+    string zid = 1;
+}
+
+message LinkKey {
+    string key = 1;
+}
+
+message SocketFrame {
+    enum Opcode {
+        INIT = 0;
+        AT_SUBREQ = 1;
+        AT_SUBRESP = 2;
+        SUB_REQ = 3;
+        SUB_RESP = 4;
+        LINK_KEY = 5;
+    }
+    Opcode opcode = 1;
+    oneof data {
+        InitFrame init = 2;
+        core.AutoTestSubmissionRequest at_sub_req = 3;
+        core.AutoTestSubmissionResponse at_sub_resp = 4;
+        core.SubmissionRequest sub_req = 5;
+        core.SubmissionResponse sub_resp = 6;
+        LinkKey link_key = 7;
+    }
+}
