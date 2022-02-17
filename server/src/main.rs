@@ -17,14 +17,14 @@ impl relay::relay_service_server::RelayService for Relay {
         &self,
         request: Request<AutoTestSubmissionRequest>,
     ) -> Result<Response<AutoTestSubmissionResponse>, Status> {
-        todo!()
+        Err(Status::unimplemented("not implemented"))
     }
 
     async fn submit_work(
         &self,
         request: Request<SubmissionRequest>,
     ) -> Result<Response<SubmissionResponse>, Status> {
-        todo!()
+        Err(Status::unimplemented("not implemented"))
     }
 }
 
