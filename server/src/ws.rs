@@ -37,8 +37,7 @@ pub async fn handle_connection(peer_map: PeerMap, stream: TcpStream, address: So
 
         let peer_map = Arc::clone(&peer_map);
 
-        let handle = Handle::current();
-        handle.spawn(async move {
+        tokio::spawn(async move {
             let mut peers = peer_map.lock().await;
             for (_, tx) in peers.iter_mut() {
                 if let Err(e) = tx.unbounded_send(msg.clone()) {
