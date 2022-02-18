@@ -37,3 +37,8 @@ jobs:
         with:
           command: build
           args: --release --bin client
+      - uses: actions/upload-artifact@v2
+        if: github.ref == 'refs/heads/develop'
+        with:
+          name: client-${{ matrix.os }}
+          path: target/release/client
