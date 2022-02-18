@@ -1,42 +1,24 @@
-use relay::{
-    AutoTestSubmissionRequest,
-    AutoTestSubmissionResponse,
-    SubmissionRequest,
-    SubmissionResponse,
-};
-use tokio::net::TcpListener;
-use tonic::{transport::Server, Request, Response, Status};
+#![warn(clippy::pedantic)]
+use std::{collections::HashMap, sync::Arc};
+
+use tokio::{net::TcpListener, sync::Mutex};
+use tonic::transport::Server;
 use tracing::info;
 
-pub mod relay {
-    tonic::include_proto!("core");
-}
+use crate::{grpc::Relay, ws::PeerMap};
 
-#[derive(Debug, Default)]
-pub struct Relay {}
+mod grpc;
+mod ws;
 
-#[tonic::async_trait]
-impl relay::relay_service_server::RelayService for Relay {
-    async fn perform_auto_test(
-        &self,
-        _request: Request<AutoTestSubmissionRequest>,
-    ) -> Result<Response<AutoTestSubmissionResponse>, Status> {
-        Err(Status::unimplemented("not implemented"))
-    }
-
-    async fn submit_work(
-        &self,
-        _request: Request<SubmissionRequest>,
-    ) -> Result<Response<SubmissionResponse>, Status> {
-        Err(Status::unimplemented("not implemented"))
-    }
-}
+pub mod relay;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
 
-    // websocket server
+    let peer_map: PeerMap = Arc::new(Mutex::new(HashMap::new()));
+
+    // Launch the websocket server
     tokio::spawn(async move {
         let listener = TcpListener::bind("0.0.0.0:50052")
             .await
@@ -48,12 +30,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let peer = stream
                 .peer_addr()
                 .expect("connected streams should have a peer address");
-            info!("[ws] Peer address: {}", peer);
-
             // deal with the connection
+            tokio::spawn(ws::handle_connection(peer_map.clone(), stream, peer));
         }
     });
 
+    // Launch the gRPC server
     let grpc_addr = "[::1]:50051".parse()?;
     let relay = Relay::default();
 
