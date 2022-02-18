@@ -16,7 +16,13 @@ impl relay::relay_service_server::RelayService for Relay {
         &self,
         _request: Request<AutoTestSubmissionRequest>,
     ) -> Result<Response<AutoTestSubmissionResponse>, Status> {
-        Err(Status::unimplemented("not implemented"))
+        let response = AutoTestSubmissionResponse {
+            test_name:      _request.get_ref().test_name.clone(),
+            text_exit_code: 1,
+            test_output:    "This service has not been implemented.".to_string(),
+        };
+
+        Ok(Response::new(response))
     }
 
     async fn submit_work(
