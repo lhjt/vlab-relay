@@ -38,10 +38,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Launch the gRPC server
     let grpc_addr = "0.0.0.0:50051".parse()?;
     let relay = Relay::default();
-    let svc = RelayServiceServer::new(relay).send_gzip().accept_gzip();
+    let svc = RelayServiceServer::new(relay).accept_gzip().send_gzip();
 
     info!("[gRPC] launching gRPC server on {}", grpc_addr);
-    Server::builder().add_service(svc).serve(grpc_addr).await?;
+    Server::builder()
+        .accept_http1(true)
+        .add_service(tonic_web::enable(svc))
+        .serve(grpc_addr)
+        .await?;
 
     Ok(())
 }
