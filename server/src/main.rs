@@ -5,7 +5,7 @@ use tokio::{net::TcpListener, sync::Mutex};
 use tonic::transport::Server;
 use tracing::info;
 
-use crate::{grpc::Relay, ws::PeerMap};
+use crate::{grpc::Relay, relay::relay_service_server::RelayServiceServer, ws::PeerMap};
 
 mod grpc;
 mod ws;
@@ -38,12 +38,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Launch the gRPC server
     let grpc_addr = "0.0.0.0:50051".parse()?;
     let relay = Relay::default();
+    let svc = RelayServiceServer::new(relay).send_gzip().accept_gzip();
 
     info!("[gRPC] launching gRPC server on {}", grpc_addr);
-    Server::builder()
-        .add_service(relay::relay_service_server::RelayServiceServer::new(relay))
-        .serve(grpc_addr)
-        .await?;
+    Server::builder().add_service(svc).serve(grpc_addr).await?;
 
     Ok(())
 }
