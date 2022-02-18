@@ -4,7 +4,7 @@ use relay::{
     SubmissionRequest,
     SubmissionResponse,
 };
-use tonic::{transport::Server, Request, Response, Status};
+use tonic::{Request, Response, Status};
 
 pub mod relay {
     tonic::include_proto!("core");

@@ -1,3 +1,4 @@
+#![warn(clippy::pedantic)]
 use tokio::net::TcpListener;
 use tonic::transport::Server;
 use tracing::info;
@@ -5,12 +6,13 @@ use tracing::info;
 use crate::grpc::{relay, Relay};
 
 mod grpc;
+mod ws;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
 
-    // websocket server
+    // Launch the websocket server
     tokio::spawn(async move {
         let listener = TcpListener::bind("0.0.0.0:50052")
             .await
@@ -28,6 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
+    // Launch the gRPC server
     let grpc_addr = "[::1]:50051".parse()?;
     let relay = Relay::default();
 
