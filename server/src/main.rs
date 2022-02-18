@@ -1,36 +1,10 @@
-use relay::{
-    AutoTestSubmissionRequest,
-    AutoTestSubmissionResponse,
-    SubmissionRequest,
-    SubmissionResponse,
-};
 use tokio::net::TcpListener;
-use tonic::{transport::Server, Request, Response, Status};
+use tonic::transport::Server;
 use tracing::info;
 
-pub mod relay {
-    tonic::include_proto!("core");
-}
+use crate::grpc::{relay, Relay};
 
-#[derive(Debug, Default)]
-pub struct Relay {}
-
-#[tonic::async_trait]
-impl relay::relay_service_server::RelayService for Relay {
-    async fn perform_auto_test(
-        &self,
-        _request: Request<AutoTestSubmissionRequest>,
-    ) -> Result<Response<AutoTestSubmissionResponse>, Status> {
-        Err(Status::unimplemented("not implemented"))
-    }
-
-    async fn submit_work(
-        &self,
-        _request: Request<SubmissionRequest>,
-    ) -> Result<Response<SubmissionResponse>, Status> {
-        Err(Status::unimplemented("not implemented"))
-    }
-}
+mod grpc;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
