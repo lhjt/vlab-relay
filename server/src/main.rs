@@ -1,5 +1,8 @@
 use relay::{
-    AutoTestSubmissionRequest, AutoTestSubmissionResponse, SubmissionRequest, SubmissionResponse,
+    AutoTestSubmissionRequest,
+    AutoTestSubmissionResponse,
+    SubmissionRequest,
+    SubmissionResponse,
 };
 use tokio::net::TcpListener;
 use tonic::{transport::Server, Request, Response, Status};
