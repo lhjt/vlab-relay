@@ -36,7 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     // Launch the gRPC server
-    let grpc_addr = "[::1]:50051".parse()?;
+    let grpc_addr = "0.0.0.0:50051".parse()?;
     let relay = Relay::default();
 
     info!("[gRPC] launching gRPC server on {}", grpc_addr);
