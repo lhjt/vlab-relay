@@ -12,6 +12,14 @@ The relay server that listens to requests from a relay client and forwards them 
 
 It is your responsibility to ensure that you have the valid certificates set up when hosting this server, preferably behind some sort of proxy as there is no certificate configuration available for the gRPC server.
 
+## Containers
+
+This project has pre-built containers available for the server. You can see all of them [here](https://github.com/lhjt/vlab-relay/pkgs/container/vlab-relay-server), or you can pull the latest one with:
+
+```bash
+docker pull ghcr.io/lhjt/vlab-relay-server:latest
+```
+
 ## Environment Variables
 
 | Var        | Usage                                    | Default |
