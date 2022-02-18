@@ -1,12 +1,13 @@
-name: Docker build
+name: Docker
 
 on:
-  push:
-    branches: [develop]
+  # push:
+  #   branches: [develop]
+  workflow_dispatch:
 
 jobs:
   image:
-    name: Build Docker image
+    name: Build Server Image
     runs-on: ubuntu-latest
     permissions:
       contents: read
