@@ -3,10 +3,12 @@ use tokio::net::TcpListener;
 use tonic::transport::Server;
 use tracing::info;
 
-use crate::grpc::{relay, Relay};
+use crate::grpc::Relay;
 
 mod grpc;
 mod ws;
+
+pub mod relay;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

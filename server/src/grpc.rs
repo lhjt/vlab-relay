@@ -1,15 +1,12 @@
-use relay::{
+use tonic::{Request, Response, Status};
+
+use crate::relay::{
+    self,
     AutoTestSubmissionRequest,
     AutoTestSubmissionResponse,
     SubmissionRequest,
     SubmissionResponse,
 };
-use tonic::{Request, Response, Status};
-
-pub mod relay {
-    tonic::include_proto!("core");
-}
-
 #[derive(Debug, Default)]
 pub struct Relay {}
 
