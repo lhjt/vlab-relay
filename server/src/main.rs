@@ -1,9 +1,11 @@
 #![warn(clippy::pedantic)]
-use tokio::net::TcpListener;
+use std::{collections::HashMap, sync::Arc};
+
+use tokio::{net::TcpListener, sync::Mutex};
 use tonic::transport::Server;
 use tracing::info;
 
-use crate::grpc::Relay;
+use crate::{grpc::Relay, ws::PeerMap};
 
 mod grpc;
 mod ws;
@@ -13,6 +15,8 @@ pub mod relay;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
+
+    let peer_map: PeerMap = Arc::new(Mutex::new(HashMap::new()));
 
     // Launch the websocket server
     tokio::spawn(async move {
@@ -26,9 +30,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let peer = stream
                 .peer_addr()
                 .expect("connected streams should have a peer address");
-            info!("[ws] Peer address: {}", peer);
-
             // deal with the connection
+            tokio::spawn(ws::handle_connection(peer_map.clone(), stream, peer));
         }
     });
 
