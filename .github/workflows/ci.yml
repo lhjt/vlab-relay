@@ -17,31 +17,6 @@ jobs:
         with:
           command: fmt
           args: --all -- --check
-  build-client:
-    if: github.ref == 'refs/heads/develop'
-    name: Build Client (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        rust: [nightly]
-    env:
-      RUST_BACKTRACE: full
-      RUSTV: ${{ matrix.rust }}
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ matrix.rust }}
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --bin client
-      - uses: actions/upload-artifact@v2
-        with:
-          name: client-${{ matrix.os }}
-          path: target/release/client
   clippy:
     strategy:
       matrix:
