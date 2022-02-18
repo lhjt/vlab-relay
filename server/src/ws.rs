@@ -7,9 +7,11 @@ use futures::{
     StreamExt,
     TryStreamExt,
 };
-use tokio::{net::TcpStream, runtime::Handle, sync::Mutex};
+use tokio::{net::TcpStream, sync::Mutex};
 use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, info};
+
+use crate::relay;
 
 pub type Tx = UnboundedSender<Message>;
 pub type PeerMap = Arc<Mutex<HashMap<SocketAddr, Tx>>>;
@@ -40,7 +42,20 @@ pub async fn handle_connection(peer_map: PeerMap, stream: TcpStream, address: So
         tokio::spawn(async move {
             let mut peers = peer_map.lock().await;
             for (_, tx) in peers.iter_mut() {
-                if let Err(e) = tx.unbounded_send(msg.clone()) {
+                let m = relay::AutoTestSubmissionRequest {
+                    course_code:   "COMP".to_string(),
+                    test_name:     msg.to_text().unwrap().to_string(),
+                    code_segments: vec![relay::CodeSegment {
+                        file_name: "main.c".to_string(),
+                        data:      vec![],
+                    }],
+                    main_file:     "main.c".to_string(),
+                };
+
+                let v = prost::Message::encode_to_vec(&m);
+                let msg = Message::Binary(v);
+
+                if let Err(e) = tx.unbounded_send(msg) {
                     debug!("[ws] failed to send message to peer: {}", e);
                 }
             }
