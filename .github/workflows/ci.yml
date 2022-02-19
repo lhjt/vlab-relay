@@ -20,7 +20,7 @@ jobs:
   clippy:
     strategy:
       matrix:
-        package: [vl-client, client, server]
+        package: [runner, client, server]
         rust: [nightly]
     name: Clippy (${{ matrix.package }})
     runs-on: ubuntu-latest

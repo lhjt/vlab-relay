@@ -2,7 +2,7 @@
 
 members = [
     "server",
-    "vl-client",
+    "runner",
     "client",
 ]
 

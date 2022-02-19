@@ -44,15 +44,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'vl-client'",
+            "name": "Debug executable 'runner'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=vl-client",
-                    "--package=vl-client"
+                    "--bin=runner",
+                    "--package=runner"
                 ],
                 "filter": {
-                    "name": "vl-client",
+                    "name": "runner",
                     "kind": "bin"
                 }
             },
@@ -62,16 +62,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'vl-client'",
+            "name": "Debug unit tests in executable 'runner'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=vl-client",
-                    "--package=vl-client"
+                    "--bin=runner",
+                    "--package=runner"
                 ],
                 "filter": {
-                    "name": "vl-client",
+                    "name": "runner",
                     "kind": "bin"
                 }
             },

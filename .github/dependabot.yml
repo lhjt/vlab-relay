@@ -13,7 +13,7 @@ updates:
     reviewers:
       - "lhjt"
   - package-ecosystem: "cargo"
-    directory: "/vl-client"
+    directory: "/runner"
     schedule:
       interval: "daily"
     reviewers:

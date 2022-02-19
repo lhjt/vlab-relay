@@ -1,12 +1,12 @@
 # server
 
-The relay server that listens to requests from a relay client and forwards them to the `vl-client` for testing and submission of code on the student's VLab instance.
+The relay server that listens to requests from a relay client and forwards them to the `runner` for testing and submission of code on the student's VLab instance.
 
 ## Communication
 
 `client`s can connect to the server via a gRPC (or grpc-web) connection. The RPC service methods are defined in the [protocol definitions](/proto).
 
-`vl-client`s connect and remain connected to the server via websockets.
+`runner`s connect and remain connected to the server via websockets.
 
 # Self Hosting
 
