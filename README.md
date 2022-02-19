@@ -9,7 +9,7 @@ A relay for UNSW students to allow local testing and submission of code for COMP
 This project is made of the following 3 binaries:
 
 1. [client](/client) - the CLI application run on the student's machine.
-2. [runner](/runner) - the client application that remains running on VLab.
+2. [runner](/runner) - the runner application that remains running on VLab and executes the commands on the VLab instance.
 3. [server](/server) - the relay server that is used as an intermediary between the `client` and the `runner`.
 
 ## Usage
