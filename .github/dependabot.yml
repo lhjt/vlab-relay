@@ -18,3 +18,9 @@ updates:
       interval: "daily"
     reviewers:
       - "lhjt"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "lhjt"
