@@ -5,7 +5,8 @@ package websocket;
 import "core.proto";
 
 message InitFrame {
-    string zid = 1;
+    string zid = 1; // the student's zID
+    string token = 2; // the student's token, used to login to the server
 }
 
 message LinkKey {

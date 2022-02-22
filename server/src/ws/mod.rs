@@ -8,13 +8,46 @@ use futures::{
     TryStreamExt,
 };
 use tokio::{net::TcpStream, sync::Mutex};
-use tokio_tungstenite::tungstenite::Message;
+use tokio_tungstenite::tungstenite::{
+    protocol::{frame::coding::CloseCode, CloseFrame},
+    Message,
+};
 use tracing::{debug, info};
 
 mod messaging;
 
-pub(crate) type Tx = UnboundedSender<Message>;
-pub(crate) type PeerMap = Arc<Mutex<HashMap<SocketAddr, Tx>>>;
+pub(crate) type TransmissionChannel = UnboundedSender<Message>;
+pub(crate) type PeerMap = Arc<Mutex<HashMap<SocketAddr, Peer>>>;
+
+pub(crate) struct Peer {
+    pub(crate) channel: TransmissionChannel,
+    pub(crate) data:    Option<PeerData>,
+}
+
+impl Peer {
+    pub(crate) fn new(tx: TransmissionChannel) -> Self {
+        Self {
+            channel: tx,
+            data:    None,
+        }
+    }
+
+    /// Closes the peer's connection, with close code `Policy`.
+    pub(crate) fn close_with_policy(&self) {
+        self.channel
+            .unbounded_send(Message::Close(Some(CloseFrame {
+                code:   CloseCode::Policy,
+                reason: "".into(),
+            })))
+            .unwrap();
+    }
+}
+
+/// Data related to a specific peer. This includes identifying information.
+pub(crate) struct PeerData {
+    pub(crate) token:    String,
+    pub(crate) username: String,
+}
 
 pub(crate) async fn handle_connection(peer_map: PeerMap, stream: TcpStream, address: SocketAddr) {
     info!("[ws] new connection from peer: {}", address);
@@ -27,7 +60,7 @@ pub(crate) async fn handle_connection(peer_map: PeerMap, stream: TcpStream, addr
 
     // register peer
     let (tx, rx) = unbounded();
-    peer_map.lock().await.insert(address, tx);
+    peer_map.lock().await.insert(address, Peer::new(tx));
 
     // channel to send messages to and channel to receive messages from
     let (outgoing, incoming) = ws_stream.split();

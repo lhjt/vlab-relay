@@ -5,7 +5,7 @@ use tokio::{net::TcpListener, sync::Mutex};
 use tonic::transport::Server;
 use tracing::info;
 
-use crate::{grpc::Relay, relay::relay_service_server::RelayServiceServer, ws::PeerMap};
+use crate::{grpc::Relay, relay::core::relay_service_server::RelayServiceServer, ws::PeerMap};
 
 mod grpc;
 mod ws;
