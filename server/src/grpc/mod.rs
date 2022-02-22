@@ -1,6 +1,7 @@
 use tonic::{Request, Response, Status};
 
 use crate::relay::core::{
+    relay_service_server::RelayService,
     AutoTestSubmissionRequest,
     AutoTestSubmissionResponse,
     SubmissionRequest,
@@ -10,7 +11,7 @@ use crate::relay::core::{
 pub struct Relay {}
 
 #[tonic::async_trait]
-impl crate::relay::core::relay_service_server::RelayService for Relay {
+impl RelayService for Relay {
     async fn perform_auto_test(
         &self,
         _request: Request<AutoTestSubmissionRequest>,
