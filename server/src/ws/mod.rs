@@ -12,13 +12,14 @@ use tokio_tungstenite::tungstenite::{
     protocol::{frame::coding::CloseCode, CloseFrame},
     Message,
 };
-use tracing::{debug, info};
+use tracing::{debug, info, instrument};
 
 mod messaging;
 
 pub(crate) type TransmissionChannel = UnboundedSender<Message>;
 pub(crate) type PeerMap = Arc<Mutex<HashMap<SocketAddr, Peer>>>;
 
+#[derive(Debug, Clone)]
 pub(crate) struct Peer {
     pub(crate) channel: TransmissionChannel,
     pub(crate) data:    Option<PeerData>,
@@ -40,15 +41,18 @@ impl Peer {
                 reason: "".into(),
             })))
             .unwrap();
+        info!("[ws] closing peer connecting with close code `Policy`");
     }
 }
 
 /// Data related to a specific peer. This includes identifying information.
+#[derive(Debug, Clone)]
 pub(crate) struct PeerData {
     pub(crate) token:    String,
     pub(crate) username: String,
 }
 
+#[instrument(skip(stream))]
 pub(crate) async fn handle_connection(peer_map: PeerMap, stream: TcpStream, address: SocketAddr) {
     info!("[ws] new connection from peer: {}", address);
 
@@ -70,6 +74,11 @@ pub(crate) async fn handle_connection(peer_map: PeerMap, stream: TcpStream, addr
         debug!("[ws] received message from peer: {:#}", msg);
 
         let peer_map = Arc::clone(&peer_map);
+
+        // if this is a close message, we will not process it
+        if let Message::Close(_) = msg {
+            return future::ready(Ok(()));
+        }
 
         tokio::spawn(async move {
             messaging::handle_message(peer_map, msg, address).await;
