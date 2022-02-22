@@ -4,8 +4,10 @@ use prost::bytes::Bytes;
 use tokio_tungstenite::tungstenite::Message;
 use tracing::{info, warn};
 
-use super::super::{Peer, PeerData};
-use crate::relay::ws_extensions::InitFrame;
+use crate::{
+    relay::ws_extensions::InitFrame,
+    ws::{models, models::Peer},
+};
 
 /// Handle a registration message from a peer.
 pub(crate) fn handle_registration(peer: &mut Peer, msg: Message, address: SocketAddr) {
@@ -17,7 +19,7 @@ pub(crate) fn handle_registration(peer: &mut Peer, msg: Message, address: Socket
             // TODO: check if the frame is valid (i.e. validate code with database and
             // all that)
             // We will assume it's fine for the time being
-            let data = PeerData {
+            let data = models::PeerData {
                 token:    frame.token,
                 username: frame.zid,
             };
@@ -36,7 +38,7 @@ pub(crate) fn handle_registration(peer: &mut Peer, msg: Message, address: Socket
             // TODO: we should be closing with policy, but for testing
             // purposes we will auth the client
             // peer.close_with_policy()
-            peer.data = Some(PeerData {
+            peer.data = Some(models::PeerData {
                 token:    "dummy".to_string(),
                 username: "dummy".to_string(),
             });

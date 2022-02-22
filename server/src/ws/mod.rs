@@ -8,49 +8,16 @@ use futures::{
     TryStreamExt,
 };
 use tokio::{net::TcpStream, sync::Mutex};
-use tokio_tungstenite::tungstenite::{
-    protocol::{frame::coding::CloseCode, CloseFrame},
-    Message,
-};
+use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, info, instrument};
 
+use self::models::Peer;
+
 mod messaging;
+mod models;
 
 pub(crate) type TransmissionChannel = UnboundedSender<Message>;
 pub(crate) type PeerMap = Arc<Mutex<HashMap<SocketAddr, Peer>>>;
-
-#[derive(Debug, Clone)]
-pub(crate) struct Peer {
-    pub(crate) channel: TransmissionChannel,
-    pub(crate) data:    Option<PeerData>,
-}
-
-impl Peer {
-    pub(crate) fn new(tx: TransmissionChannel) -> Self {
-        Self {
-            channel: tx,
-            data:    None,
-        }
-    }
-
-    /// Closes the peer's connection, with close code `Policy`.
-    pub(crate) fn close_with_policy(&self) {
-        self.channel
-            .unbounded_send(Message::Close(Some(CloseFrame {
-                code:   CloseCode::Policy,
-                reason: "".into(),
-            })))
-            .unwrap();
-        info!("[ws] closing peer connecting with close code `Policy`");
-    }
-}
-
-/// Data related to a specific peer. This includes identifying information.
-#[derive(Debug, Clone)]
-pub(crate) struct PeerData {
-    pub(crate) token:    String,
-    pub(crate) username: String,
-}
 
 #[instrument(skip(stream))]
 pub(crate) async fn handle_connection(peer_map: PeerMap, stream: TcpStream, address: SocketAddr) {
