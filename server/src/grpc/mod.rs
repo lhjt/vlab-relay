@@ -63,10 +63,9 @@ impl RelayService for Relay {
         request: Request<CheckStyleRequest>,
     ) -> Result<Response<CheckStyleResponse>, Status> {
         let zid = "z5555555";
-        let code = request.get_ref().code_segments[0].data.clone();
 
         let mgr = MANAGER.get().unwrap();
-        let result = mgr.check_style(zid, &code).await;
+        let result = mgr.check_style(zid, request.into_inner()).await;
 
         match result {
             Ok(v) => Ok(Response::new(v)),
