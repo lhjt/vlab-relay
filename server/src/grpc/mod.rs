@@ -13,20 +13,15 @@ use crate::{
     },
     MANAGER,
 };
+
+pub(crate) mod interceptors;
 #[derive(Debug, Default)]
 pub struct Relay {}
 
 macro_rules! handle_rpc {
     ($request:expr, $mgr:expr, $task:ident) => {{
-        let meta = $request.metadata();
-        let auth_data = meta.get("Authorization");
-
-        if auth_data.is_none() {
-            return Err(Status::permission_denied("403"));
-        }
-
-        // TODO: handle actual auth
-        let zid = "z5555555";
+        let meta = $request.metadata().clone();
+        let zid = meta.get("zid").unwrap().to_str().unwrap();
 
         let mgr = $mgr.get().unwrap();
         let result = mgr.$task(zid, $request.into_inner()).await;

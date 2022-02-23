@@ -8,7 +8,7 @@ use tracing::info;
 
 use crate::{
     client_manager::ClientManager,
-    grpc::Relay,
+    grpc::{interceptors, Relay},
     relay::core::relay_service_server::RelayServiceServer,
     ws::PeerMap,
 };
@@ -49,7 +49,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Launch the gRPC server
     let grpc_addr = "0.0.0.0:50051".parse()?;
     let relay = Relay::default();
-    let svc = RelayServiceServer::new(relay).accept_gzip().send_gzip();
+    let svc = RelayServiceServer::with_interceptor(relay, interceptors::auth);
 
     info!("[gRPC] launching gRPC server on {}", grpc_addr);
     Server::builder()
