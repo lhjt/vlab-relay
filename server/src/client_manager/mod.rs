@@ -49,7 +49,7 @@ macro_rules! get_peer_by_zid {
 }
 
 macro_rules! basic_relay {
-    ($self: expr, $zid:ident, $req:expr, $req_type:ident, $resp_type:ident) => {{
+    ($self:expr, $zid:ident, $req:expr, $req_type:ident, $resp_type:ident) => {{
         // first find the specific peer to send the message to
         let peer_map = $self.peers.lock().await;
         let peer = get_peer_by_zid!($zid, peer_map);
