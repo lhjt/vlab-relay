@@ -6,6 +6,7 @@ use tracing::error;
 
 use crate::client_manager::ClientManager;
 
+mod auth;
 mod client_manager;
 mod grpc;
 mod startup;
