@@ -21,7 +21,7 @@ pub(crate) struct ClientManager {
     pub(crate) tasks: TaskList,
 }
 
-mod tasks;
+pub(crate) mod tasks;
 
 #[derive(Debug, Snafu)]
 pub(crate) enum Error {
