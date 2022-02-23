@@ -4,7 +4,7 @@ use std::{collections::HashMap, sync::Arc};
 use once_cell::sync::OnceCell;
 use tokio::{net::TcpListener, sync::Mutex};
 use tonic::transport::Server;
-use tracing::info;
+use tracing::{error, info};
 
 use crate::{
     client_manager::ClientManager,
@@ -30,7 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     MANAGER.set(manager).unwrap();
 
     // Launch the websocket server
-    tokio::spawn(async move {
+    let ws_handle = tokio::spawn(async move {
         let listener = TcpListener::bind("0.0.0.0:50052")
             .await
             .expect("failed to bind");
@@ -47,16 +47,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     // Launch the gRPC server
-    let grpc_addr = "0.0.0.0:50051".parse()?;
-    let relay = Relay::default();
-    let svc = RelayServiceServer::with_interceptor(relay, interceptors::auth);
+    let rpc_handle = tokio::spawn(async move {
+        let grpc_addr = "0.0.0.0:50051".parse().expect("failed to parse address");
+        let relay = Relay::default();
+        let svc = RelayServiceServer::with_interceptor(relay, interceptors::auth);
 
-    info!("[gRPC] launching gRPC server on {}", grpc_addr);
-    Server::builder()
-        .accept_http1(true)
-        .add_service(tonic_web::enable(svc))
-        .serve(grpc_addr)
-        .await?;
+        info!("[gRPC] launching gRPC server on {}", grpc_addr);
+        Server::builder()
+            .accept_http1(true)
+            .add_service(tonic_web::enable(svc))
+            .serve(grpc_addr)
+            .await
+            .expect("failed to serve gRPC");
+    });
 
-    Ok(())
+    match tokio::try_join!(ws_handle, rpc_handle) {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            error!("[main] error: {}", e);
+            panic!()
+        },
+    }
 }
