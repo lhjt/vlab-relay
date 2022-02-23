@@ -68,15 +68,15 @@ impl UserManager {
     }
 
     #[instrument]
-    pub(crate) async fn get_zid_from_token(&self, token: &str) -> Option<String> {
+    pub(crate) async fn get_by_token(&self, token: &str) -> Option<User> {
         let filter = doc! {"token": token};
         let user = self.get_users_collection().find_one(filter, None).await;
 
         match user {
-            Ok(Some(user)) => Some(user.zid),
+            Ok(Some(user)) => Some(user),
             Ok(None) => None,
             Err(e) => {
-                error!("[get_zid_from_token] error: {}", e);
+                error!("[get_by_token] error: {}", e);
                 None
             },
         }
