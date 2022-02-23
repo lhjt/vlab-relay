@@ -12,6 +12,7 @@ use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, info, instrument, warn};
 
 use self::models::Peer;
+use crate::MANAGER;
 
 mod messaging;
 pub(crate) mod models;
@@ -20,7 +21,7 @@ pub(crate) type TransmissionChannel = UnboundedSender<Message>;
 pub(crate) type PeerMap = Arc<Mutex<HashMap<SocketAddr, Peer>>>;
 
 #[instrument(skip(stream))]
-pub(crate) async fn handle_connection(peer_map: PeerMap, stream: TcpStream, address: SocketAddr) {
+pub(crate) async fn handle_connection(stream: TcpStream, address: SocketAddr) {
     info!("[ws] new connection from peer: {}", address);
 
     // perform websocket handshake
@@ -30,6 +31,7 @@ pub(crate) async fn handle_connection(peer_map: PeerMap, stream: TcpStream, addr
     info!("[ws] websocket connection established: {}", address);
 
     // register peer
+    let peer_map = MANAGER.get().unwrap().peers.clone();
     let (tx, rx) = unbounded();
     peer_map.lock().await.insert(address, Peer::new(tx));
 
