@@ -13,6 +13,15 @@ use crate::{
 
 mod operations;
 
+macro_rules! handle_task_data {
+    ($manager:expr, $id:expr, $response_type:ident, $data:expr) => {
+        $manager
+            .tasks
+            .complete_task($id, CoreMessage::$response_type($data))
+            .await;
+    };
+}
+
 /// Handle a message from a peer. This is called for each message received from
 /// each peer.
 #[instrument(skip(peer_map))]
@@ -52,26 +61,14 @@ pub(crate) async fn handle_message(peer_map: PeerMap, msg: WSMessage, address: S
                     // we can ignore opcode since rust processes enum variants :sunglasses:
                     // TODO: validate opcode
                     match task_data {
-                        Data::CheckStyleResponse(csr) => {
-                            manager
-                                .tasks
-                                .complete_task(task.id, CoreMessage::CheckStyleResponse(csr))
-                                .await;
+                        Data::CheckStyleResponse(data) => {
+                            handle_task_data!(manager, task.id, CheckStyleResponse, data);
                         },
                         Data::AutotestSubmissionResponse(data) => {
-                            manager
-                                .tasks
-                                .complete_task(
-                                    task.id,
-                                    CoreMessage::AutoTestSubmissionResponse(data),
-                                )
-                                .await;
+                            handle_task_data!(manager, task.id, AutoTestSubmissionResponse, data);
                         },
-                        Data::SubmissionResponse(sr) => {
-                            manager
-                                .tasks
-                                .complete_task(task.id, CoreMessage::SubmissionResponse(sr))
-                                .await;
+                        Data::SubmissionResponse(data) => {
+                            handle_task_data!(manager, task.id, SubmissionResponse, data);
                         },
                         _ => todo!(),
                     }
