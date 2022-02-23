@@ -14,7 +14,7 @@ use tracing::{debug, info, instrument, warn};
 use self::models::Peer;
 
 mod messaging;
-mod models;
+pub(crate) mod models;
 
 pub(crate) type TransmissionChannel = UnboundedSender<Message>;
 pub(crate) type PeerMap = Arc<Mutex<HashMap<SocketAddr, Peer>>>;

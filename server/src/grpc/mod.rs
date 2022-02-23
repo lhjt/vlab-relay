@@ -1,13 +1,17 @@
 use tonic::{Request, Response, Status};
+use tracing::error;
 
-use crate::relay::core::{
-    relay_service_server::RelayService,
-    AutoTestSubmissionRequest,
-    AutoTestSubmissionResponse,
-    CheckStyleRequest,
-    CheckStyleResponse,
-    SubmissionRequest,
-    SubmissionResponse,
+use crate::{
+    relay::core::{
+        relay_service_server::RelayService,
+        AutoTestSubmissionRequest,
+        AutoTestSubmissionResponse,
+        CheckStyleRequest,
+        CheckStyleResponse,
+        SubmissionRequest,
+        SubmissionResponse,
+    },
+    MANAGER,
 };
 #[derive(Debug, Default)]
 pub struct Relay {}
@@ -36,8 +40,22 @@ impl RelayService for Relay {
 
     async fn check_style(
         &self,
-        _request: Request<CheckStyleRequest>,
+        request: Request<CheckStyleRequest>,
     ) -> Result<Response<CheckStyleResponse>, Status> {
-        Err(Status::unimplemented("not implemented"))
+        let zid = "z5555555";
+        let code = request.get_ref().code_segments[0].data.clone();
+
+        let mgr = MANAGER.get().unwrap();
+        let result = mgr.check_style(zid, &code).await;
+
+        match result {
+            Ok(v) => Ok(Response::new(v)),
+            Err(e) => {
+                error!("{:?}", e);
+                Err(Status::unavailable(
+                    "failed to check style; please try again later",
+                ))
+            },
+        }
     }
 }

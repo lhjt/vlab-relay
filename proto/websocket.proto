@@ -9,8 +9,17 @@ message InitFrame {
     string token = 2; // the student's token, used to login to the server
 }
 
-message LinkKey {
-    string key = 1;
+message Task {
+    string id = 1;
+    oneof data {
+        InitFrame init = 2;
+        core.AutoTestSubmissionRequest at_sub_req = 3;
+        core.AutoTestSubmissionResponse at_sub_resp = 4;
+        core.CheckStyleRequest style_req = 5;
+        core.CheckStyleResponse style_resp = 6;
+        core.SubmissionRequest sub_req = 7;
+        core.SubmissionResponse sub_resp = 8;
+    }
 }
 
 message SocketFrame {
@@ -18,17 +27,11 @@ message SocketFrame {
         INIT = 0;
         AT_SUBREQ = 1;
         AT_SUBRESP = 2;
-        SUB_REQ = 3;
-        SUB_RESP = 4;
-        LINK_KEY = 5;
+        STYLE_REQ = 3;
+        STYLE_RESP = 4;
+        SUB_REQ = 5;
+        SUB_RESP = 6;
     }
     Opcode opcode = 1;
-    oneof data {
-        InitFrame init = 2;
-        core.AutoTestSubmissionRequest at_sub_req = 3;
-        core.AutoTestSubmissionResponse at_sub_resp = 4;
-        core.SubmissionRequest sub_req = 5;
-        core.SubmissionResponse sub_resp = 6;
-        LinkKey link_key = 7;
-    }
+    Task task = 2;
 }

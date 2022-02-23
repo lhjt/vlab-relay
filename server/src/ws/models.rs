@@ -5,6 +5,7 @@ use tokio_tungstenite::tungstenite::{
 use tracing::info;
 
 use super::TransmissionChannel;
+use crate::relay::ws_extensions::SocketFrame;
 
 /// A websocket peer.
 #[derive(Debug, Clone)]
@@ -21,14 +22,27 @@ impl Peer {
         }
     }
 
+    /// Send's a message to the peer.
+    pub(crate) fn send_message(
+        &self,
+        message: Message,
+    ) -> Result<(), futures::channel::mpsc::TrySendError<Message>> {
+        self.channel.unbounded_send(message)
+    }
+
+    pub(crate) fn send_socket_frame(&self, frame: &SocketFrame) {
+        let encoded = prost::Message::encode_to_vec(frame);
+        let message = Message::Binary(encoded);
+        self.send_message(message).unwrap();
+    }
+
     /// Closes the peer's connection, with close code `Policy`.
     pub(crate) fn close_with_policy(&self) {
-        self.channel
-            .unbounded_send(Message::Close(Some(CloseFrame {
-                code:   CloseCode::Policy,
-                reason: "".into(),
-            })))
-            .unwrap();
+        self.send_message(Message::Close(Some(CloseFrame {
+            code:   CloseCode::Policy,
+            reason: "".into(),
+        })))
+        .unwrap();
         info!("[ws] closing peer connecting with close code `Policy`");
     }
 }
