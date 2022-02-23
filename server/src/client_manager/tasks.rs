@@ -19,17 +19,17 @@ impl CoreMessage {
     pub(crate) fn into_socket_frame(self, id: String) -> SocketFrame {
         match self {
             Self::CheckStyleRequest(csr) => SocketFrame {
-                opcode: Opcode::StyleReq as i32,
+                opcode: Opcode::CheckStyleRequest as i32,
                 task:   Some(Task {
                     id,
-                    data: Some(task::Data::StyleReq(csr)),
+                    data: Some(task::Data::CheckStyleRequest(csr)),
                 }),
             },
             Self::CheckStyleResponse(csr) => SocketFrame {
-                opcode: Opcode::StyleResp as i32,
+                opcode: Opcode::CheckStyleResponse as i32,
                 task:   Some(Task {
                     id,
-                    data: Some(task::Data::StyleResp(csr)),
+                    data: Some(task::Data::CheckStyleResponse(csr)),
                 }),
             },
         }

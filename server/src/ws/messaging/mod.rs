@@ -52,7 +52,7 @@ pub(crate) async fn handle_message(peer_map: PeerMap, msg: WSMessage, address: S
                     // we can ignore opcode since rust processes enum variants :sunglasses:
                     // TODO: validate opcode
                     match task_data {
-                        Data::StyleResp(csr) => {
+                        Data::CheckStyleResponse(csr) => {
                             manager
                                 .tasks
                                 .complete_task(task.id, CoreMessage::CheckStyleResponse(csr))

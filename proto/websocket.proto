@@ -12,25 +12,23 @@ message InitFrame {
 message Task {
     string id = 1;
     oneof data {
-        InitFrame init = 2;
-        core.AutoTestSubmissionRequest at_sub_req = 3;
-        core.AutoTestSubmissionResponse at_sub_resp = 4;
-        core.CheckStyleRequest style_req = 5;
-        core.CheckStyleResponse style_resp = 6;
-        core.SubmissionRequest sub_req = 7;
-        core.SubmissionResponse sub_resp = 8;
+        core.AutoTestSubmissionRequest autotest_submission_request = 2;
+        core.AutoTestSubmissionResponse autotest_submission_response = 3;
+        core.CheckStyleRequest check_style_request = 4;
+        core.CheckStyleResponse check_style_response = 5;
+        core.SubmissionRequest submission_request = 6;
+        core.SubmissionResponse submission_response = 7;
     }
 }
 
 message SocketFrame {
     enum Opcode {
-        INIT = 0;
-        AT_SUBREQ = 1;
-        AT_SUBRESP = 2;
-        STYLE_REQ = 3;
-        STYLE_RESP = 4;
-        SUB_REQ = 5;
-        SUB_RESP = 6;
+        AUTOTEST_SUBMISSION_REQUEST = 0;
+        AUTOTEST_SUBMISSION_RESPONSE = 1;
+        CHECK_STYLE_REQUEST = 2;
+        CHECK_STYLE_RESPONSE = 3;
+        SUBMISSION_REQUEST = 4;
+        SUBMISSION_RESPONSE = 5;
     }
     Opcode opcode = 1;
     Task task = 2;
