@@ -1,22 +1,33 @@
 #![warn(clippy::pedantic)]
 use std::{collections::HashMap, sync::Arc};
 
+use once_cell::sync::OnceCell;
 use tokio::{net::TcpListener, sync::Mutex};
 use tonic::transport::Server;
 use tracing::info;
 
-use crate::{grpc::Relay, relay::relay_service_server::RelayServiceServer, ws::PeerMap};
+use crate::{
+    client_manager::ClientManager,
+    grpc::{interceptors, Relay},
+    relay::core::relay_service_server::RelayServiceServer,
+    ws::PeerMap,
+};
 
+mod client_manager;
 mod grpc;
 mod ws;
 
 pub mod relay;
+
+static MANAGER: OnceCell<ClientManager> = OnceCell::new();
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
 
     let peer_map: PeerMap = Arc::new(Mutex::new(HashMap::new()));
+    let manager = ClientManager::new();
+    MANAGER.set(manager).unwrap();
 
     // Launch the websocket server
     tokio::spawn(async move {
@@ -38,7 +49,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Launch the gRPC server
     let grpc_addr = "0.0.0.0:50051".parse()?;
     let relay = Relay::default();
-    let svc = RelayServiceServer::new(relay).accept_gzip().send_gzip();
+    let svc = RelayServiceServer::with_interceptor(relay, interceptors::auth);
 
     info!("[gRPC] launching gRPC server on {}", grpc_addr);
     Server::builder()

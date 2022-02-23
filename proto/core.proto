@@ -4,6 +4,7 @@ package core;
 
 service RelayService {
     rpc PerformAutoTest (AutoTestSubmissionRequest) returns (AutoTestSubmissionResponse);
+    rpc CheckStyle (CheckStyleRequest) returns (CheckStyleResponse);
     rpc SubmitWork (SubmissionRequest) returns (SubmissionResponse);
 }
 
@@ -23,6 +24,16 @@ message AutoTestSubmissionResponse {
     string test_name = 1; // The name of the test that was run.
     int32 text_exit_code = 2; // The status of the test.
     string test_output = 3; // The stdout and stderr of the test.
+}
+
+message CheckStyleRequest {
+    repeated CodeSegment code_segments = 1; // The source code files to be checked.
+    string main_file = 2; // The name of the main file to be checked.
+}
+
+message CheckStyleResponse {
+    int32 exit_code = 1; // The status of the checkstyle run.
+    string output = 2; // The stdout and stderr of the checkstyle run.
 }
 
 message SubmissionRequest {

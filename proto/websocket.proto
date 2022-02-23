@@ -5,29 +5,31 @@ package websocket;
 import "core.proto";
 
 message InitFrame {
-    string zid = 1;
+    string zid = 1; // the student's zID
+    string token = 2; // the student's token, used to login to the server
 }
 
-message LinkKey {
-    string key = 1;
+message Task {
+    string id = 1;
+    oneof data {
+        core.AutoTestSubmissionRequest autotest_submission_request = 2;
+        core.AutoTestSubmissionResponse autotest_submission_response = 3;
+        core.CheckStyleRequest check_style_request = 4;
+        core.CheckStyleResponse check_style_response = 5;
+        core.SubmissionRequest submission_request = 6;
+        core.SubmissionResponse submission_response = 7;
+    }
 }
 
 message SocketFrame {
     enum Opcode {
-        INIT = 0;
-        AT_SUBREQ = 1;
-        AT_SUBRESP = 2;
-        SUB_REQ = 3;
-        SUB_RESP = 4;
-        LINK_KEY = 5;
+        AUTOTEST_SUBMISSION_REQUEST = 0;
+        AUTOTEST_SUBMISSION_RESPONSE = 1;
+        CHECK_STYLE_REQUEST = 2;
+        CHECK_STYLE_RESPONSE = 3;
+        SUBMISSION_REQUEST = 4;
+        SUBMISSION_RESPONSE = 5;
     }
     Opcode opcode = 1;
-    oneof data {
-        InitFrame init = 2;
-        core.AutoTestSubmissionRequest at_sub_req = 3;
-        core.AutoTestSubmissionResponse at_sub_resp = 4;
-        core.SubmissionRequest sub_req = 5;
-        core.SubmissionResponse sub_resp = 6;
-        LinkKey link_key = 7;
-    }
+    Task task = 2;
 }
