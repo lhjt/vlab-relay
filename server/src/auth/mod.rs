@@ -101,4 +101,18 @@ impl UserManager {
             },
         }
     }
+
+    #[instrument]
+    pub(crate) async fn delete_by_zid(&self, zid: &str) -> Result<(), Whatever> {
+        let collection = self.get_users_collection();
+        let result = collection.delete_one(doc! {"zid": zid}, None).await;
+
+        match result {
+            Ok(_) => Ok(()),
+            Err(e) => {
+                error!("[delete_by_zid] error: {}", e);
+                whatever!("failed to delete: {}", e)
+            },
+        }
+    }
 }
