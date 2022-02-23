@@ -58,6 +58,15 @@ pub(crate) async fn handle_message(peer_map: PeerMap, msg: WSMessage, address: S
                                 .complete_task(task.id, CoreMessage::CheckStyleResponse(csr))
                                 .await;
                         },
+                        Data::AutotestSubmissionResponse(data) => {
+                            manager
+                                .tasks
+                                .complete_task(
+                                    task.id,
+                                    CoreMessage::AutoTestSubmissionResponse(data),
+                                )
+                                .await;
+                        },
                         _ => todo!(),
                     }
                 } else {

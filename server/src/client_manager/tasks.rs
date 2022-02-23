@@ -4,12 +4,19 @@ use tokio::sync::{oneshot::Sender, Mutex};
 use tracing::{error, instrument};
 
 use crate::relay::{
-    core::{CheckStyleRequest, CheckStyleResponse},
+    core::{
+        AutoTestSubmissionRequest,
+        AutoTestSubmissionResponse,
+        CheckStyleRequest,
+        CheckStyleResponse,
+    },
     ws_extensions::{socket_frame::Opcode, task, SocketFrame, Task},
 };
 
 #[derive(Debug, Clone)]
 pub(crate) enum CoreMessage {
+    AutoTestSubmissionRequest(AutoTestSubmissionRequest),
+    AutoTestSubmissionResponse(AutoTestSubmissionResponse),
     CheckStyleRequest(CheckStyleRequest),
     CheckStyleResponse(CheckStyleResponse),
 }
@@ -18,18 +25,32 @@ impl CoreMessage {
     /// Converts a `CoreMessage` into a `SocketFrame`.
     pub(crate) fn into_socket_frame(self, id: String) -> SocketFrame {
         match self {
-            Self::CheckStyleRequest(csr) => SocketFrame {
+            Self::AutoTestSubmissionRequest(data) => SocketFrame {
                 opcode: Opcode::CheckStyleRequest as i32,
                 task:   Some(Task {
                     id,
-                    data: Some(task::Data::CheckStyleRequest(csr)),
+                    data: Some(task::Data::AutotestSubmissionRequest(data)),
                 }),
             },
-            Self::CheckStyleResponse(csr) => SocketFrame {
+            Self::AutoTestSubmissionResponse(data) => SocketFrame {
+                opcode: Opcode::CheckStyleRequest as i32,
+                task:   Some(Task {
+                    id,
+                    data: Some(task::Data::AutotestSubmissionResponse(data)),
+                }),
+            },
+            Self::CheckStyleRequest(data) => SocketFrame {
+                opcode: Opcode::CheckStyleRequest as i32,
+                task:   Some(Task {
+                    id,
+                    data: Some(task::Data::CheckStyleRequest(data)),
+                }),
+            },
+            Self::CheckStyleResponse(data) => SocketFrame {
                 opcode: Opcode::CheckStyleResponse as i32,
                 task:   Some(Task {
                     id,
-                    data: Some(task::Data::CheckStyleResponse(csr)),
+                    data: Some(task::Data::CheckStyleResponse(data)),
                 }),
             },
         }

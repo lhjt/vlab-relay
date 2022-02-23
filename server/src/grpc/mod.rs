@@ -20,15 +20,22 @@ pub struct Relay {}
 impl RelayService for Relay {
     async fn perform_auto_test(
         &self,
-        _request: Request<AutoTestSubmissionRequest>,
+        request: Request<AutoTestSubmissionRequest>,
     ) -> Result<Response<AutoTestSubmissionResponse>, Status> {
-        let response = AutoTestSubmissionResponse {
-            test_name:      _request.get_ref().test_name.clone(),
-            text_exit_code: 1,
-            test_output:    "This service has not been implemented.".to_string(),
-        };
+        let zid = "z5555555";
 
-        Ok(Response::new(response))
+        let mgr = MANAGER.get().unwrap();
+        let result = mgr.autotest(zid, request.into_inner()).await;
+
+        match result {
+            Ok(v) => Ok(Response::new(v)),
+            Err(e) => {
+                error!("{:?}", e);
+                Err(Status::unavailable(
+                    "failed to check style; please try again later",
+                ))
+            },
+        }
     }
 
     async fn submit_work(
