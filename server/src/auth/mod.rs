@@ -16,7 +16,7 @@ pub(crate) struct User {
 
 #[derive(Debug, Clone)]
 pub(crate) struct UserManager {
-    pub(crate) db_client: mongodb::Client,
+    db_client: mongodb::Client,
 }
 
 impl UserManager {
