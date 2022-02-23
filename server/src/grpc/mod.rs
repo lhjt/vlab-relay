@@ -40,9 +40,22 @@ impl RelayService for Relay {
 
     async fn submit_work(
         &self,
-        _request: Request<SubmissionRequest>,
+        request: Request<SubmissionRequest>,
     ) -> Result<Response<SubmissionResponse>, Status> {
-        Err(Status::unimplemented("not implemented"))
+        let zid = "z5555555";
+
+        let mgr = MANAGER.get().unwrap();
+        let result = mgr.submission(zid, request.into_inner()).await;
+
+        match result {
+            Ok(v) => Ok(Response::new(v)),
+            Err(e) => {
+                error!("{:?}", e);
+                Err(Status::unavailable(
+                    "failed to submit; please try again later",
+                ))
+            },
+        }
     }
 
     async fn check_style(

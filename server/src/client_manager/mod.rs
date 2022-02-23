@@ -13,6 +13,8 @@ use crate::{
         CheckStyleRequest,
         CheckStyleResponse,
         CodeSegment,
+        SubmissionRequest,
+        SubmissionResponse,
     },
     ws::PeerMap,
 };
@@ -125,6 +127,40 @@ impl ClientManager {
             Ok(csr)
         } else {
             error!("received a task response that wasn't a auto test submission response");
+            panic!();
+        }
+    }
+
+    #[instrument]
+    pub(crate) async fn submission(
+        &self,
+        zid: &str,
+        req: SubmissionRequest,
+    ) -> Result<SubmissionResponse, Error> {
+        // first find the specific peer to send the message to
+        let peer_map = self.peers.lock().await;
+        let peer = get_peer_by_zid!(zid, peer_map);
+
+        // spawn a new oneshot channel for receiving the response
+        let (tx, rx) = tokio::sync::oneshot::channel::<CoreMessage>();
+
+        let csr = CoreMessage::SubmissionRequest(req);
+
+        // create a new task and add it to the list
+        let task_id = uuid::Uuid::new_v4().to_string();
+        self.tasks.add_task(task_id.clone(), tx).await;
+
+        // send the task to the peer
+        peer.1.send_socket_frame(&csr.into_socket_frame(task_id));
+
+        // wait for the response
+        let result = rx.await.unwrap();
+
+        // convert the core message into a submission response
+        if let CoreMessage::SubmissionResponse(csr) = result {
+            Ok(csr)
+        } else {
+            error!("received a task response that wasn't a submission response");
             panic!();
         }
     }

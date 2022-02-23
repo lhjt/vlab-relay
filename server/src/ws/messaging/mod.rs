@@ -67,6 +67,12 @@ pub(crate) async fn handle_message(peer_map: PeerMap, msg: WSMessage, address: S
                                 )
                                 .await;
                         },
+                        Data::SubmissionResponse(sr) => {
+                            manager
+                                .tasks
+                                .complete_task(task.id, CoreMessage::SubmissionResponse(sr))
+                                .await;
+                        },
                         _ => todo!(),
                     }
                 } else {

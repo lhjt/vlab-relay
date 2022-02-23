@@ -9,6 +9,8 @@ use crate::relay::{
         AutoTestSubmissionResponse,
         CheckStyleRequest,
         CheckStyleResponse,
+        SubmissionRequest,
+        SubmissionResponse,
     },
     ws_extensions::{socket_frame::Opcode, task, SocketFrame, Task},
 };
@@ -19,6 +21,8 @@ pub(crate) enum CoreMessage {
     AutoTestSubmissionResponse(AutoTestSubmissionResponse),
     CheckStyleRequest(CheckStyleRequest),
     CheckStyleResponse(CheckStyleResponse),
+    SubmissionRequest(SubmissionRequest),
+    SubmissionResponse(SubmissionResponse),
 }
 
 impl CoreMessage {
@@ -51,6 +55,20 @@ impl CoreMessage {
                 task:   Some(Task {
                     id,
                     data: Some(task::Data::CheckStyleResponse(data)),
+                }),
+            },
+            Self::SubmissionRequest(data) => SocketFrame {
+                opcode: Opcode::SubmissionRequest as i32,
+                task:   Some(Task {
+                    id,
+                    data: Some(task::Data::SubmissionRequest(data)),
+                }),
+            },
+            Self::SubmissionResponse(data) => SocketFrame {
+                opcode: Opcode::SubmissionResponse as i32,
+                task:   Some(Task {
+                    id,
+                    data: Some(task::Data::SubmissionResponse(data)),
                 }),
             },
         }
