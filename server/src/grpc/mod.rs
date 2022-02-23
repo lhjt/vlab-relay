@@ -32,7 +32,7 @@ impl RelayService for Relay {
             Err(e) => {
                 error!("{:?}", e);
                 Err(Status::unavailable(
-                    "failed to check style; please try again later",
+                    "failed to run tests; please try again later",
                 ))
             },
         }
