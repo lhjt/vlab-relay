@@ -32,7 +32,7 @@ pub(crate) mod tasks;
 
 #[derive(Debug, Snafu)]
 pub(crate) enum Error {
-    #[snafu(display("no active runner connected for"))]
+    #[snafu(display("no active runner connected"))]
     NoRunner,
 }
 
