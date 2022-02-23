@@ -4,6 +4,8 @@ use crate::relay::core::{
     relay_service_server::RelayService,
     AutoTestSubmissionRequest,
     AutoTestSubmissionResponse,
+    CheckStyleRequest,
+    CheckStyleResponse,
     SubmissionRequest,
     SubmissionResponse,
 };
@@ -29,6 +31,13 @@ impl RelayService for Relay {
         &self,
         _request: Request<SubmissionRequest>,
     ) -> Result<Response<SubmissionResponse>, Status> {
+        Err(Status::unimplemented("not implemented"))
+    }
+
+    async fn check_style(
+        &self,
+        _request: Request<CheckStyleRequest>,
+    ) -> Result<Response<CheckStyleResponse>, Status> {
         Err(Status::unimplemented("not implemented"))
     }
 }
