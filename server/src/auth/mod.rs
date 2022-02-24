@@ -1,3 +1,6 @@
+use std::result::Result;
+
+use futures::StreamExt;
 use mongodb::{
     bson::doc,
     options::{ClientOptions, IndexOptions, UpdateOptions},
@@ -48,28 +51,36 @@ impl UserManager {
 
         // create indexes for the users collection
         let collection = db_client.database("relay").collection::<User>("users");
-        match collection
-            .create_indexes(
-                vec![
-                    IndexModel::builder()
-                        .keys(doc! { "zid": 1 })
-                        .options(IndexOptions::builder().unique(true).build())
-                        .build(),
-                    IndexModel::builder()
-                        .keys(doc! { "token": 1 })
-                        .options(IndexOptions::builder().unique(true).build())
-                        .build(),
-                ],
-                None,
-            )
-            .await
-        {
-            Ok(_) => {},
+        // check if the indexes already exist
+        let indexes: Vec<IndexModel> = match collection.list_indexes(None).await {
+            Ok(indexes) => indexes.map(Result::unwrap).collect().await,
             Err(e) => {
-                error!("Failed to create indexes for users collection. {}", e);
+                error!("Failed to list indexes. {}", e);
                 panic!()
             },
         };
+
+        let indexes_to_create = vec!["zid", "token"];
+        for index in indexes_to_create {
+            if !indexes.iter().any(|i| i.keys.contains_key(index)) {
+                match collection
+                    .create_index(
+                        IndexModel::builder()
+                            .keys(doc! {index: 1})
+                            .options(IndexOptions::builder().unique(true).build())
+                            .build(),
+                        None,
+                    )
+                    .await
+                {
+                    Ok(_) => (),
+                    Err(e) => {
+                        error!("Failed to create index. {}", e);
+                        panic!()
+                    },
+                }
+            }
+        }
 
         Self { db_client }
     }
