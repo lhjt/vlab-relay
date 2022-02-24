@@ -2,6 +2,7 @@ use mongodb::{
     bson::doc,
     options::{ClientOptions, UpdateOptions},
     Client,
+    IndexModel,
 };
 use serde::{Deserialize, Serialize};
 use snafu::{whatever, Whatever};
@@ -41,6 +42,25 @@ impl UserManager {
             Ok(client) => client,
             Err(e) => {
                 error!("Failed to create mongodb client. {}", e);
+                panic!()
+            },
+        };
+
+        // create indexes for the users collection
+        let collection = db_client.database("relay").collection::<User>("users");
+        match collection
+            .create_indexes(
+                vec![
+                    IndexModel::builder().keys(doc! { "zid": 1 }).build(),
+                    IndexModel::builder().keys(doc! { "token": 1 }).build(),
+                ],
+                None,
+            )
+            .await
+        {
+            Ok(_) => {},
+            Err(e) => {
+                error!("Failed to create indexes for users collection. {}", e);
                 panic!()
             },
         };
