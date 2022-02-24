@@ -1,6 +1,6 @@
 use mongodb::{
     bson::doc,
-    options::{ClientOptions, UpdateOptions},
+    options::{ClientOptions, IndexOptions, UpdateOptions},
     Client,
     IndexModel,
 };
@@ -51,8 +51,14 @@ impl UserManager {
         match collection
             .create_indexes(
                 vec![
-                    IndexModel::builder().keys(doc! { "zid": 1 }).build(),
-                    IndexModel::builder().keys(doc! { "token": 1 }).build(),
+                    IndexModel::builder()
+                        .keys(doc! { "zid": 1 })
+                        .options(IndexOptions::builder().unique(true).build())
+                        .build(),
+                    IndexModel::builder()
+                        .keys(doc! { "token": 1 })
+                        .options(IndexOptions::builder().unique(true).build())
+                        .build(),
                 ],
                 None,
             )
