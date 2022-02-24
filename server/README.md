@@ -22,10 +22,11 @@ docker pull ghcr.io/lhjt/vlab-relay-server:latest
 
 ## Environment Variables
 
-| Var           | Usage                                          | Default |
-| ------------- | ---------------------------------------------- | ------- |
-| `RUST_LOG`    | The level of logs to log to the console.       | `INFO`  |
-| `MONGODB_URI` | The URI of the MongoDB instance to connect to. | ``      |
+| Var           | Usage                                                         | Default |
+| ------------- | ------------------------------------------------------------- | ------- |
+| `RUST_LOG`    | The level of logs to log to the console.                      | `INFO`  |
+| `MONGODB_URI` | The URI of the MongoDB instance to connect to.                | ``      |
+| `ADMIN_TOKEN` | The token required to make admin modifications to the server. | ``      |
 
 ## Ports
 

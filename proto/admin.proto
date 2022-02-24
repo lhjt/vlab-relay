@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package admin;
+
+message UpsertUserRequest {
+    string zid = 1;
+    string token = 2;
+}
+
+message GenericResponse {
+    bool success = 1;
+    string error = 2;
+}
+
+message DeleteUserRequest {
+    string zid = 1;
+}

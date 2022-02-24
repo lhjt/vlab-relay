@@ -2,8 +2,13 @@ syntax = "proto3";
 
 package core;
 
+import "admin.proto";
+
 service RelayService {
     rpc Command(CommandRequest) returns (CommandResponse) {}
+    rpc UpsertUser(admin.UpsertUserRequest) returns (admin.GenericResponse) {}
+    rpc DeleteUser(admin.DeleteUserRequest) returns (admin.GenericResponse) {}
+
 }
 
 message File {

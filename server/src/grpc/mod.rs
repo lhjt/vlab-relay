@@ -1,12 +1,20 @@
 use tonic::{Request, Response, Status};
 use tracing::{error, instrument};
 
+use self::interceptors::is_admin;
 use crate::{
-    relay::core::{relay_service_server::RelayService, CommandRequest, CommandResponse},
+    auth::User,
+    relay::{
+        admin::{DeleteUserRequest, GenericResponse, UpsertUserRequest},
+        core::{relay_service_server::RelayService, CommandRequest, CommandResponse},
+    },
     MANAGER,
+    USER_MANAGER,
 };
 
 pub(crate) mod interceptors;
+#[macro_use]
+mod macros;
 #[derive(Debug, Default)]
 pub struct Relay {}
 
@@ -20,10 +28,7 @@ impl RelayService for Relay {
         let zid = match interceptors::get_zid(request.metadata()).await {
             Some(z) => z,
             None => {
-                return Err(Status::new(
-                    tonic::Code::Unauthenticated,
-                    "You must be authenticated to use this service.",
-                ));
+                return unauthenticated!("You must be authenticated to use this service.");
             },
         };
 
@@ -39,6 +44,42 @@ impl RelayService for Relay {
                     "failed to forward task; please try again later",
                 ))
             },
+        }
+    }
+
+    #[instrument]
+    async fn upsert_user(
+        &self,
+        request: Request<UpsertUserRequest>,
+    ) -> Result<Response<GenericResponse>, Status> {
+        validate_admin!(request);
+
+        let mgr = USER_MANAGER.get().unwrap();
+        let req = request.into_inner();
+        match mgr
+            .upsert_user(User {
+                zid:   req.zid,
+                token: req.token,
+            })
+            .await
+        {
+            Ok(_) => generic_success!(),
+            Err(e) => generic_failed!("failed to upsert user: {:?}", e),
+        }
+    }
+
+    #[instrument]
+    async fn delete_user(
+        &self,
+        request: Request<DeleteUserRequest>,
+    ) -> Result<Response<GenericResponse>, Status> {
+        validate_admin!(request);
+
+        let mgr = USER_MANAGER.get().unwrap();
+        let req = request.into_inner();
+        match mgr.delete_by_zid(&req.zid).await {
+            Ok(_) => generic_success!(),
+            Err(e) => generic_failed!("failed to delete user: {:?}", e),
         }
     }
 }

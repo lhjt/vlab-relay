@@ -20,3 +20,19 @@ pub(crate) async fn get_zid(meta: &MetadataMap) -> Option<String> {
         None => None,
     }
 }
+
+pub(crate) fn is_admin(meta: &MetadataMap) -> Option<bool> {
+    let admin_token = std::env::var("ADMIN_TOKEN").expect("ADMIN_TOKEN must be set");
+    let auth_data = meta.get("Authorization")?.to_str().ok()?;
+
+    if !auth_data.starts_with("Bearer ") {
+        return None;
+    }
+
+    let token = auth_data.replace("Bearer ", "");
+    if admin_token != token {
+        return None;
+    }
+
+    Some(true)
+}
