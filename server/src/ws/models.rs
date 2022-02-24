@@ -22,6 +22,11 @@ impl Peer {
         }
     }
 
+    pub(crate) fn register(&mut self, zid: String) {
+        info!("[ws] registering peer: {}", zid);
+        self.data = Some(PeerData { username: zid });
+    }
+
     /// Send's a message to the peer.
     pub(crate) fn send_message(
         &self,

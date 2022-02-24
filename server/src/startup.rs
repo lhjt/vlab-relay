@@ -2,17 +2,13 @@ use tokio::net::TcpListener;
 use tonic::transport::Server;
 use tracing::info;
 
-use crate::{
-    grpc::{interceptors, Relay},
-    relay::core::relay_service_server::RelayServiceServer,
-    ws,
-};
+use crate::{grpc::Relay, relay::core::relay_service_server::RelayServiceServer, ws};
 
 pub(crate) fn launch_grpc_server() -> tokio::task::JoinHandle<()> {
     tokio::spawn(async move {
         let grpc_addr = "0.0.0.0:50051".parse().expect("failed to parse address");
         let relay = Relay::default();
-        let svc = RelayServiceServer::with_interceptor(relay, interceptors::auth);
+        let svc = RelayServiceServer::new(relay).accept_gzip().send_gzip();
 
         info!("[gRPC] launching gRPC server on {}", grpc_addr);
         Server::builder()

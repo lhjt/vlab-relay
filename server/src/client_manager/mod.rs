@@ -26,7 +26,7 @@ pub(crate) struct ClientManager {
 pub(crate) mod tasks;
 
 #[derive(Debug, Snafu)]
-pub(crate) enum Error {
+pub(crate) enum ClientManagerError {
     #[snafu(display("no active runner connected"))]
     NoRunner,
 }
@@ -39,7 +39,7 @@ macro_rules! get_peer_by_zid {
                 Some(data) => data.username == $zid,
                 None => false,
             })
-            .ok_or(Error::NoRunner)?
+            .ok_or(ClientManagerError::NoRunner)?
     };
 }
 
@@ -56,7 +56,7 @@ impl ClientManager {
         &self,
         zid: &str,
         task: CommandRequest,
-    ) -> Result<CommandResponse, Error> {
+    ) -> Result<CommandResponse, ClientManagerError> {
         // first find the specific peer to send the message to
         let peer_map = self.peers.lock().await;
         let peer = get_peer_by_zid!(zid, peer_map);

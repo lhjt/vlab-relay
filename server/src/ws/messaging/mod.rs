@@ -42,7 +42,7 @@ pub(crate) async fn handle_message(msg: Message, address: SocketAddr) {
         // if the peer is not registered, check if the packet is a InitFrame
         if not_registered {
             if let Data::Init(frame) = message {
-                operations::handle_registration(peer, address, frame).await;
+                operations::handle_registration(peer, frame).await;
             } else {
                 // unregistered peers should not be sending non-init frames
                 warn!("[ws] unregistered peer sent non-init frame");

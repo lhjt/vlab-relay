@@ -1,33 +1,38 @@
-use tonic::{Request, Status};
+use tonic::metadata::MetadataMap;
 
-pub(crate) fn auth(mut req: Request<()>) -> Result<Request<()>, Status> {
-    let meta = req.metadata();
-    let auth_data = meta.get("Authorization");
+use crate::USER_MANAGER;
 
-    if auth_data.is_none() {
-        return Err(Status::permission_denied("Invalid credentials"));
-    }
+/// Gets the zid from the token from a `gRPC` request metadata map.
+pub(crate) async fn get_zid(meta: &MetadataMap) -> Option<String> {
+    let auth_data = meta.get("Authorization")?.to_str().ok()?;
 
-    let auth_data = auth_data.unwrap();
-    let auth_data = auth_data.to_str().ok();
-    if auth_data.is_none() {
-        return Err(Status::permission_denied("Invalid credentials"));
-    }
-
-    let auth_data = auth_data.unwrap();
     if !auth_data.starts_with("Bearer ") {
-        return Err(Status::permission_denied("Invalid credentials"));
+        return None;
     }
 
     let token = auth_data.replace("Bearer ", "");
 
-    // TODO: handle actual auth
-    if token.len() > 100 {
-        return Err(Status::permission_denied("Invalid credentials"));
+    let manager = USER_MANAGER.get().unwrap();
+    let user = manager.get_by_token(&token).await;
+
+    match user {
+        Some(u) => Some(u.zid),
+        None => None,
+    }
+}
+
+pub(crate) fn is_admin(meta: &MetadataMap) -> Option<bool> {
+    let admin_token = std::env::var("ADMIN_TOKEN").expect("ADMIN_TOKEN must be set");
+    let auth_data = meta.get("Authorization")?.to_str().ok()?;
+
+    if !auth_data.starts_with("Bearer ") {
+        return None;
     }
 
-    req.metadata_mut()
-        .insert("zid", "z5555555".parse().unwrap());
+    let token = auth_data.replace("Bearer ", "");
+    if admin_token != token {
+        return None;
+    }
 
-    Ok(req)
+    Some(true)
 }
