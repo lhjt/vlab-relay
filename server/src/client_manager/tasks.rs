@@ -3,81 +3,11 @@ use std::{collections::HashMap, sync::Arc};
 use tokio::sync::{oneshot::Sender, Mutex};
 use tracing::{error, instrument};
 
-use crate::relay::{
-    core::{
-        AutoTestSubmissionRequest,
-        AutoTestSubmissionResponse,
-        CheckStyleRequest,
-        CheckStyleResponse,
-        SubmissionRequest,
-        SubmissionResponse,
-    },
-    ws_extensions::{socket_frame::Opcode, task, SocketFrame, Task},
-};
-
-#[derive(Debug, Clone)]
-pub(crate) enum CoreMessage {
-    AutoTestSubmissionRequest(AutoTestSubmissionRequest),
-    AutoTestSubmissionResponse(AutoTestSubmissionResponse),
-    CheckStyleRequest(CheckStyleRequest),
-    CheckStyleResponse(CheckStyleResponse),
-    SubmissionRequest(SubmissionRequest),
-    SubmissionResponse(SubmissionResponse),
-}
-
-impl CoreMessage {
-    /// Converts a `CoreMessage` into a `SocketFrame`.
-    pub(crate) fn into_socket_frame(self, id: String) -> SocketFrame {
-        match self {
-            Self::AutoTestSubmissionRequest(data) => SocketFrame {
-                opcode: Opcode::CheckStyleRequest as i32,
-                task:   Some(Task {
-                    id,
-                    data: Some(task::Data::AutotestSubmissionRequest(data)),
-                }),
-            },
-            Self::AutoTestSubmissionResponse(data) => SocketFrame {
-                opcode: Opcode::CheckStyleRequest as i32,
-                task:   Some(Task {
-                    id,
-                    data: Some(task::Data::AutotestSubmissionResponse(data)),
-                }),
-            },
-            Self::CheckStyleRequest(data) => SocketFrame {
-                opcode: Opcode::CheckStyleRequest as i32,
-                task:   Some(Task {
-                    id,
-                    data: Some(task::Data::CheckStyleRequest(data)),
-                }),
-            },
-            Self::CheckStyleResponse(data) => SocketFrame {
-                opcode: Opcode::CheckStyleResponse as i32,
-                task:   Some(Task {
-                    id,
-                    data: Some(task::Data::CheckStyleResponse(data)),
-                }),
-            },
-            Self::SubmissionRequest(data) => SocketFrame {
-                opcode: Opcode::SubmissionRequest as i32,
-                task:   Some(Task {
-                    id,
-                    data: Some(task::Data::SubmissionRequest(data)),
-                }),
-            },
-            Self::SubmissionResponse(data) => SocketFrame {
-                opcode: Opcode::SubmissionResponse as i32,
-                task:   Some(Task {
-                    id,
-                    data: Some(task::Data::SubmissionResponse(data)),
-                }),
-            },
-        }
-    }
-}
+use crate::relay::{core::CommandResponse, ws_extensions::TaskResponse};
 
 #[derive(Debug, Clone)]
 pub(crate) struct TaskList {
-    pub(crate) tasks: Arc<Mutex<HashMap<String, Sender<CoreMessage>>>>,
+    pub(crate) tasks: Arc<Mutex<HashMap<String, Sender<Option<CommandResponse>>>>>,
 }
 
 impl TaskList {
@@ -87,19 +17,29 @@ impl TaskList {
         }
     }
 
-    pub(crate) async fn add_task(&self, id: String, channel: Sender<CoreMessage>) {
+    pub(crate) async fn add_task(&self, id: String, channel: Sender<Option<CommandResponse>>) {
         self.tasks.lock().await.insert(id, channel);
     }
 
     /// Removes a task from the list and sends the result to the task's channel.
     #[instrument]
-    pub(crate) async fn complete_task(&self, id: String, message: CoreMessage) {
-        let chan = self.tasks.lock().await.remove(&id).unwrap_or_else(|| {
-            error!("attempted to complete a task that doesn't exist");
-            panic!();
-        });
+    pub(crate) async fn complete_task(&self, result: TaskResponse) {
+        let chan = self
+            .tasks
+            .lock()
+            .await
+            .remove(&result.id)
+            .unwrap_or_else(|| {
+                error!("attempted to complete a task that doesn't exist");
+                panic!();
+            });
 
-        if let Err(e) = chan.send(message) {
+        if result.response.is_none() {
+            // this shouldn't happen if the runner is valid
+            error!("task response was None");
+        }
+
+        if let Err(e) = chan.send(result.response) {
             error!("failed to send message to task: {:?}", e);
         }
     }

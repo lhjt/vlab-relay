@@ -6,14 +6,9 @@ use tracing::{error, instrument};
 
 use self::tasks::TaskList;
 use crate::{
-    client_manager::tasks::CoreMessage,
-    relay::core::{
-        AutoTestSubmissionRequest,
-        AutoTestSubmissionResponse,
-        CheckStyleRequest,
-        CheckStyleResponse,
-        SubmissionRequest,
-        SubmissionResponse,
+    relay::{
+        core::{CommandRequest, CommandResponse},
+        ws_extensions::{socket_frame::Data, SocketFrame, TaskRequest},
     },
     ws::PeerMap,
 };
@@ -48,37 +43,6 @@ macro_rules! get_peer_by_zid {
     };
 }
 
-macro_rules! basic_relay {
-    ($self:expr, $zid:ident, $req:expr, $req_type:ident, $resp_type:ident) => {{
-        // first find the specific peer to send the message to
-        let peer_map = $self.peers.lock().await;
-        let peer = get_peer_by_zid!($zid, peer_map);
-
-        // spawn a new oneshot channel for receiving the response
-        let (tx, rx) = tokio::sync::oneshot::channel::<CoreMessage>();
-
-        let csr = CoreMessage::$req_type($req);
-
-        // create a new task and add it to the list
-        let task_id = uuid::Uuid::new_v4().to_string();
-        $self.tasks.add_task(task_id.clone(), tx).await;
-
-        // send the task to the peer
-        peer.1.send_socket_frame(&csr.into_socket_frame(task_id));
-
-        // wait for the response
-        let result = rx.await.unwrap();
-
-        // convert the core message into a auto test submission response
-        if let CoreMessage::$resp_type(csr) = result {
-            Ok(csr)
-        } else {
-            error!("received unexpected response type");
-            panic!();
-        }
-    }};
-}
-
 impl ClientManager {
     pub(crate) fn new() -> Self {
         Self {
@@ -88,35 +52,41 @@ impl ClientManager {
     }
 
     #[instrument]
-    pub(crate) async fn check_style(
+    pub(crate) async fn forward_task(
         &self,
         zid: &str,
-        req: CheckStyleRequest,
-    ) -> Result<CheckStyleResponse, Error> {
-        basic_relay!(self, zid, req, CheckStyleRequest, CheckStyleResponse)
-    }
+        task: CommandRequest,
+    ) -> Result<CommandResponse, Error> {
+        // first find the specific peer to send the message to
+        let peer_map = self.peers.lock().await;
+        let peer = get_peer_by_zid!(zid, peer_map);
 
-    #[instrument]
-    pub(crate) async fn autotest(
-        &self,
-        zid: &str,
-        req: AutoTestSubmissionRequest,
-    ) -> Result<AutoTestSubmissionResponse, Error> {
-        basic_relay!(
-            self,
-            zid,
-            req,
-            AutoTestSubmissionRequest,
-            AutoTestSubmissionResponse
-        )
-    }
+        // spawn a new oneshot channel for receiving the response
+        let (tx, rx) = tokio::sync::oneshot::channel::<Option<CommandResponse>>();
 
-    #[instrument]
-    pub(crate) async fn submission(
-        &self,
-        zid: &str,
-        req: SubmissionRequest,
-    ) -> Result<SubmissionResponse, Error> {
-        basic_relay!(self, zid, req, SubmissionRequest, SubmissionResponse)
+        // create a new task and add it to the list
+        let task_id = uuid::Uuid::new_v4().to_string();
+        self.tasks.add_task(task_id.clone(), tx).await;
+
+        let send_frame = SocketFrame {
+            data: Some(Data::TaskRequest(TaskRequest {
+                id:      task_id,
+                command: Some(task),
+            })),
+        };
+
+        // send the task to the peer
+        peer.1.send_socket_frame(&send_frame);
+
+        // wait for the response
+        let result = rx.await.unwrap();
+
+        // convert the core message into a auto test submission response
+        if let Some(result) = result {
+            Ok(result)
+        } else {
+            error!("received unexpected response type");
+            panic!();
+        }
     }
 }
