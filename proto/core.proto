@@ -3,48 +3,27 @@ syntax = "proto3";
 package core;
 
 service RelayService {
-    rpc PerformAutoTest (AutoTestSubmissionRequest) returns (AutoTestSubmissionResponse);
-    rpc CheckStyle (CheckStyleRequest) returns (CheckStyleResponse);
-    rpc SubmitWork (SubmissionRequest) returns (SubmissionResponse);
+    rpc Command(CommandRequest) returns (CommandResponse) {}
 }
 
-message CodeSegment {
+message File {
     string file_name = 1;
     bytes data = 2; // The actual data of the source code file.
 }
 
-message AutoTestSubmissionRequest {
-    string course_code = 1; // The specific course autotest binary (such as `1511`).
-    string test_name = 2; // The name of the test to be run.
-    repeated CodeSegment code_segments = 3; // The source code files to be compiled and run.
-    string main_file = 4; // The name of the main file to be run.
+message Directory {
+    string name = 1;
+    repeated File files = 2;
+    repeated Directory directories = 3;
 }
 
-message AutoTestSubmissionResponse {
-    string test_name = 1; // The name of the test that was run.
-    int32 text_exit_code = 2; // The status of the test.
-    string test_output = 3; // The stdout and stderr of the test.
+message CommandRequest {
+    string command = 1;
+    repeated string arguments = 2;
+    Directory directory = 3; // represents the root dir (cwd)
 }
 
-message CheckStyleRequest {
-    repeated CodeSegment code_segments = 1; // The source code files to be checked.
-    string main_file = 2; // The name of the main file to be checked.
-}
-
-message CheckStyleResponse {
-    int32 exit_code = 1; // The status of the checkstyle run.
-    string output = 2; // The stdout and stderr of the checkstyle run.
-}
-
-message SubmissionRequest {
-    string course_code = 1; // The specific course to submit to (such as `cs1511`).
-    string problem = 2; // The name of the problem that the submission is for.
-    repeated CodeSegment code_segments = 3; // The source code files to be compiled and submitted.
-    string main_file = 4; // The name of the main file to be run.
-}
-
-message SubmissionResponse {
-    string course_code = 1; // The specific course to submit to (such as `cs1511`).
-    string problem = 2; // The name of the problem that the submission is for.
-    bool success = 3; // Whether the submission was successful.
+message CommandResponse {
+    string output = 1;
+    int64 exit_code = 2;
 }
