@@ -50,6 +50,5 @@ impl Peer {
 /// Data related to a specific peer. This includes identifying information.
 #[derive(Debug, Clone)]
 pub(crate) struct PeerData {
-    pub(crate) token:    String,
     pub(crate) username: String,
 }

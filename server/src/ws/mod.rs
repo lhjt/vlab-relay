@@ -42,15 +42,13 @@ pub(crate) async fn handle_connection(stream: TcpStream, address: SocketAddr) {
     let broadcast_incoming = incoming.try_for_each(|msg| {
         debug!("[ws] received message from peer: {:#}", msg);
 
-        let peer_map = Arc::clone(&peer_map);
-
         // if this is a close message, we will not process it
         if let Message::Close(_) = msg {
             return future::ready(Ok(()));
         }
 
         tokio::spawn(async move {
-            messaging::handle_message(peer_map, msg, address).await;
+            messaging::handle_message(msg, address).await;
         });
 
         future::ok(())
