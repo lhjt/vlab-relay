@@ -4,6 +4,7 @@ use tracing::{error, instrument};
 use self::interceptors::is_admin;
 use crate::{
     auth::User,
+    client_manager::ClientManagerError,
     relay::{
         admin::{DeleteUserRequest, GenericResponse, UpsertUserRequest},
         core::{relay_service_server::RelayService, CommandRequest, CommandResponse},
@@ -39,10 +40,9 @@ impl RelayService for Relay {
             Ok(v) => Ok(Response::new(v)),
             Err(e) => {
                 error!("failed to forward task: {:?}", e);
-                Err(Status::unavailable(
-                    // TODO: more detailed error messages
-                    "failed to forward task; please try again later",
-                ))
+                match e {
+                    ClientManagerError::NoRunner => Err(Status::unavailable("NoRunner")),
+                }
             },
         }
     }
