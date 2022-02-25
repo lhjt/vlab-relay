@@ -1,5 +1,6 @@
 use clap::Parser;
 use dialoguer::{theme::ColorfulTheme, Confirm, Input, Password};
+use human_panic::setup_panic;
 
 /// A VLab relay runner. This app should run on your VLab instance, under your
 /// account name. It is highly recommended that you run this in some sort of
@@ -9,6 +10,7 @@ use dialoguer::{theme::ColorfulTheme, Confirm, Input, Password};
 struct Args {}
 
 fn main() {
+    setup_panic!();
     Args::parse();
 
     let host = Input::<String>::with_theme(&ColorfulTheme::default())
