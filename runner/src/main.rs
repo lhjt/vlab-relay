@@ -47,7 +47,7 @@ async fn main() {
                 tokio::time::sleep(std::time::Duration::from_secs(5)).await;
             },
             Ok((stream, ..)) => {
-                spinner.stop_with_message("✔ Connected to relay\n".green().to_string());
+                spinner.stop_with_message("✔ Connected to relay \n".green().to_string());
                 let (tx, rx) = futures::channel::mpsc::unbounded();
                 let (write, read) = stream.split();
 
