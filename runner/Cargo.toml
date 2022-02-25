@@ -9,7 +9,11 @@ homepage = "https://github.com/lhjt/vlab-relay"
 
 [dependencies]
 clap = { version = "3.1.2", features = ["derive"] }
+colored = "2.0.0"
 dialoguer = "0.10.0"
 human-panic = "1.0.3"
+log = "0.4.14"
+simple_logger = "2.1.0"
+whoami = "1.2.1"
 
 [features]
