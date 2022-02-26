@@ -23,6 +23,15 @@ pub(crate) struct UserManager {
     db_client: mongodb::Client,
 }
 
+macro_rules! create_unique_index {
+    ($name:expr) => {
+        IndexModel::builder()
+            .keys(doc! { $name: 1 })
+            .options(IndexOptions::builder().unique(true).build())
+            .build()
+    };
+}
+
 impl UserManager {
     #[instrument]
     pub(crate) async fn new() -> Self {
@@ -55,6 +64,25 @@ impl UserManager {
         let indexes: Vec<IndexModel> = match collection.list_indexes(None).await {
             Ok(indexes) => indexes.map(Result::unwrap).collect().await,
             Err(e) => {
+                if e.to_string().contains("ns does not exist") {
+                    // the collection doesn't exist, so we need to create it
+                    match collection
+                        .create_indexes(
+                            vec![create_unique_index!("zid"), create_unique_index!("token")],
+                            None,
+                        )
+                        .await
+                    {
+                        Ok(_) => {},
+                        Err(e) => {
+                            error!("Failed to create mongodb indexes: {}", e);
+                            panic!()
+                        },
+                    };
+                } else {
+                    error!("Failed to list indexes. {}", e);
+                    panic!()
+                }
                 error!("Failed to list indexes. {}", e);
                 panic!()
             },
