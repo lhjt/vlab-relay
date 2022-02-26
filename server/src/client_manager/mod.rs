@@ -1,7 +1,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use snafu::Snafu;
-use tokio::sync::Mutex;
+use tokio::sync::RwLock;
 use tracing::{error, instrument};
 
 use self::tasks::TaskList;
@@ -46,7 +46,7 @@ macro_rules! get_peer_by_zid {
 impl ClientManager {
     pub(crate) fn new() -> Self {
         Self {
-            peers: Arc::new(Mutex::new(HashMap::new())),
+            peers: Arc::new(RwLock::new(HashMap::new())),
             tasks: TaskList::new(),
         }
     }
@@ -58,7 +58,7 @@ impl ClientManager {
         task: CommandRequest,
     ) -> Result<CommandResponse, ClientManagerError> {
         // first find the specific peer to send the message to
-        let peer_map = self.peers.lock().await;
+        let peer_map = self.peers.read().await;
         let peer = get_peer_by_zid!(zid, peer_map);
 
         // spawn a new oneshot channel for receiving the response

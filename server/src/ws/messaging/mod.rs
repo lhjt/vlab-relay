@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 
 use tokio_tungstenite::tungstenite::Message;
-use tracing::{instrument, warn};
+use tracing::{debug, instrument, warn};
 
 use crate::{
     relay::ws_extensions::{socket_frame::Data, SocketFrame},
@@ -17,10 +17,10 @@ pub(crate) async fn handle_message(msg: Message, address: SocketAddr) {
     // every peer must register themselves with the server before anything else can
     // take place.
 
-    let peer_map = MANAGER.get().unwrap().peers.clone();
-    let mut peer_map = peer_map.lock().await;
+    let manager = MANAGER.get().unwrap().peers.clone();
+    let peer_map = manager.read().await;
     let peer = peer_map
-        .get_mut(&address)
+        .get(&address)
         .expect("peer was not in the peer map");
 
     if let Message::Binary(binary) = msg {
@@ -42,6 +42,11 @@ pub(crate) async fn handle_message(msg: Message, address: SocketAddr) {
         // if the peer is not registered, check if the packet is a InitFrame
         if not_registered {
             if let Data::Init(frame) = message {
+                // drop to release lock
+                drop(peer_map);
+                let peer_map = MANAGER.get().unwrap().peers.clone();
+                let mut peer_map = peer_map.write().await;
+                let peer = peer_map.get_mut(&address).unwrap();
                 operations::handle_registration(peer, frame).await;
             } else {
                 // unregistered peers should not be sending non-init frames
@@ -63,6 +68,7 @@ pub(crate) async fn handle_message(msg: Message, address: SocketAddr) {
                     peer.close_with_policy();
                 },
                 Data::TaskResponse(response) => {
+                    debug!("[ws] received task response for task: {}", response.id);
                     // signal to the task manager that this task has been completed
                     let manager = MANAGER.get().unwrap();
                     manager.tasks.complete_task(response).await;

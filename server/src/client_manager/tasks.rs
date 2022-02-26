@@ -1,7 +1,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use tokio::sync::{oneshot::Sender, Mutex};
-use tracing::{error, instrument};
+use tracing::{debug, error, instrument};
 
 use crate::relay::{core::CommandResponse, ws_extensions::TaskResponse};
 
@@ -24,6 +24,7 @@ impl TaskList {
     /// Removes a task from the list and sends the result to the task's channel.
     #[instrument]
     pub(crate) async fn complete_task(&self, result: TaskResponse) {
+        debug!("completing task: {}", result.id);
         let chan = self
             .tasks
             .lock()
@@ -39,6 +40,7 @@ impl TaskList {
             error!("task response was None");
         }
 
+        debug!("sending task result: {}", result.id);
         if let Err(e) = chan.send(result.response) {
             error!("failed to send message to task: {:?}", e);
         }
