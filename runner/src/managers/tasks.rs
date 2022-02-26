@@ -1,6 +1,7 @@
 use std::{
     fs::DirBuilder,
     path::{Path, PathBuf},
+    process::Stdio,
 };
 
 use colored::Colorize;
@@ -67,6 +68,8 @@ impl Task {
         let child = match tokio::process::Command::new(self.request.command)
             .args(self.request.arguments)
             .current_dir(Path::new(&folder_name))
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
             .spawn()
         {
             Ok(r) => r,
