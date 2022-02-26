@@ -29,3 +29,23 @@ jobs:
         with:
           name: client-${{ matrix.os }}
           path: target/release/client
+  runner:
+    name: Runner (linux)
+    runs-on: ubuntu-latest
+    env:
+      RUST_BACKTRACE: full
+      RUSTV: nightly
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --bin runner
+      - uses: actions/upload-artifact@v2
+        with:
+          name: runner-linux
+          path: target/release/runner
