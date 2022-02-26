@@ -12,6 +12,7 @@ struct Args {}
 
 mod config_management;
 mod managers;
+mod relay;
 mod startup;
 
 #[tokio::main]

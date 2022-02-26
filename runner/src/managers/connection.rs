@@ -28,6 +28,20 @@ impl ConnectionManager {
         }
     }
 
+    pub(crate) fn send_message(&self, message: Message) {
+        match &self.write_sink {
+            Some(sink) => match sink.unbounded_send(message) {
+                Ok(_) => {},
+                Err(e) => {
+                    error!("failed to send message: {}", e);
+                },
+            },
+            None => {
+                error!("no write sink available");
+            },
+        };
+    }
+
     pub(crate) async fn connect_and_listen(&mut self) {
         loop {
             // attempt to connect to the relay
