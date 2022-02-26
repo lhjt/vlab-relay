@@ -153,7 +153,7 @@ impl UserManager {
         let result = collection
             .update_one(
                 doc! {"zid": user.zid},
-                doc! {"token": user.token},
+                doc! {"$set": doc! {"token": user.token}},
                 Some(UpdateOptions::builder().upsert(true).build()),
             )
             .await;
