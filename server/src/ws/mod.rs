@@ -7,7 +7,7 @@ use futures::{
     StreamExt,
     TryStreamExt,
 };
-use tokio::{net::TcpStream, sync::Mutex};
+use tokio::{net::TcpStream, sync::RwLock};
 use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, info, instrument, warn};
 
@@ -18,7 +18,7 @@ mod messaging;
 pub(crate) mod models;
 
 pub(crate) type TransmissionChannel = UnboundedSender<Message>;
-pub(crate) type PeerMap = Arc<Mutex<HashMap<SocketAddr, Peer>>>;
+pub(crate) type PeerMap = Arc<RwLock<HashMap<SocketAddr, Peer>>>;
 
 #[instrument(skip(stream))]
 pub(crate) async fn handle_connection(stream: TcpStream, address: SocketAddr) {
@@ -33,7 +33,7 @@ pub(crate) async fn handle_connection(stream: TcpStream, address: SocketAddr) {
     // register peer
     let peer_map = MANAGER.get().unwrap().peers.clone();
     let (tx, rx) = unbounded();
-    peer_map.lock().await.insert(address, Peer::new(tx));
+    peer_map.write().await.insert(address, Peer::new(tx));
 
     // channel to send messages to and channel to receive messages from
     let (outgoing, incoming) = ws_stream.split();
@@ -61,13 +61,13 @@ pub(crate) async fn handle_connection(stream: TcpStream, address: SocketAddr) {
     pin_mut!(broadcast_incoming, receive_from_others);
 
     // handle registration timeout
-    let peers = Arc::clone(&peer_map);
     tokio::spawn(async move {
         // give the client 3 seconds to register itself
         tokio::time::sleep(std::time::Duration::from_secs(3)).await;
 
         // if the client hasn't registered itself, close the connection
-        let peers = peers.lock().await;
+        let peers = MANAGER.get().unwrap().peers.clone();
+        let peers = peers.read().await;
         match peers.get(&address) {
             Some(peer) if peer.data.is_none() => {
                 warn!(
@@ -83,5 +83,6 @@ pub(crate) async fn handle_connection(stream: TcpStream, address: SocketAddr) {
     future::select(broadcast_incoming, receive_from_others).await;
 
     info!("[ws] connection closed: {}", address);
-    peer_map.lock().await.remove(&address);
+    let peer_map = MANAGER.get().unwrap().peers.clone();
+    peer_map.write().await.remove(&address);
 }

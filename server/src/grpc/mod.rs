@@ -1,5 +1,5 @@
 use tonic::{Request, Response, Status};
-use tracing::{error, instrument};
+use tracing::{debug, error, instrument};
 
 use self::interceptors::is_admin;
 use crate::{
@@ -34,6 +34,7 @@ impl RelayService for Relay {
         };
 
         let mgr = MANAGER.get().unwrap();
+        debug!("[grpc] waiting for task to complete");
         let result = mgr.forward_task(&zid, request.into_inner()).await;
 
         match result {
