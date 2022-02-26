@@ -76,6 +76,11 @@ impl Task {
         // wait for the child to finish
         match child.wait_with_output().await {
             Ok(r) => {
+                info!(
+                    "task {} finished with exit code {}",
+                    self.id,
+                    r.status.code().unwrap_or(2)
+                );
                 // delete the temp folder
                 std::fs::remove_dir_all(folder_name.clone()).unwrap_or_else(|e| {
                     error!(

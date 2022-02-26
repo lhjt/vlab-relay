@@ -25,7 +25,9 @@ impl ConnectionManager {
             match connection {
                 // if we failed to connect, wait a bit and try again
                 Err(e) => handle_connection_error(spinner, e).await,
-                Ok((stream, ..)) => handle_connection(spinner, stream).await,
+                Ok((stream, ..)) => {
+                    handle_connection(spinner, stream, self.config.token.clone()).await
+                },
             }
         }
     }
