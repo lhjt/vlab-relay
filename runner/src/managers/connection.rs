@@ -20,7 +20,6 @@ impl ConnectionManager {
             // attempt to connect to the relay
             let spinner = Spinner::new(Spinners::Dots, "Connecting to relay".to_string());
             let connection = tokio_tungstenite::connect_async(self.config.get_url().clone()).await;
-            tokio::time::sleep(Duration::from_secs(1)).await;
 
             match connection {
                 // if we failed to connect, wait a bit and try again
