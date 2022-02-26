@@ -11,6 +11,7 @@ use crate::managers::ConnectionManager;
 struct Args {}
 
 mod config_management;
+mod handlers;
 mod managers;
 mod relay;
 mod startup;
