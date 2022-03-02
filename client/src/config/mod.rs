@@ -21,6 +21,17 @@ impl Configuration {
 
         Ok(())
     }
+
+    pub(crate) fn check_complete(&self) {
+        if self.token.is_none() {
+            println!("{}", "CONFIG: Missing token. Please add a token before continuing (check help for more details).".red());
+            std::process::exit(1);
+        }
+        if self.uri.is_none() {
+            println!("{}", "CONFIG: Missing uri. Please add a uri before continuing (check help for more details).".red());
+            std::process::exit(1);
+        }
+    }
 }
 
 pub(crate) fn get_config() -> Configuration {
