@@ -2,6 +2,8 @@
 
 use clap::{Parser, Subcommand};
 
+mod relay;
+
 #[allow(clippy::doc_markdown)]
 /// The VLab relay client. Allows you to execute commands on your VLab instance
 /// from your local working environment. It automatically captures all of the
