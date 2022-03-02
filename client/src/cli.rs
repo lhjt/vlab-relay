@@ -1,4 +1,7 @@
-use clap::{ArgEnum, Parser, Subcommand};
+use std::io;
+
+use clap::{ArgEnum, Command, Parser, Subcommand};
+use clap_complete::{generate, Generator, Shell};
 
 #[allow(clippy::doc_markdown)]
 /// The VLab relay client. Allows you to execute commands on your VLab
@@ -6,7 +9,15 @@ use clap::{ArgEnum, Parser, Subcommand};
 /// captures all of the files in your cwd when you execute the command,
 /// and transfers this context to your VLab instance.
 #[derive(Parser, Debug)]
-#[clap(name = "vlab-relay client", author, version, about, long_about = None, verbatim_doc_comment)]
+#[clap(
+    name = "vlab-relay client",
+    author,
+    version,
+    about,
+    long_about = None,
+    verbatim_doc_comment,
+    trailing_var_arg = true
+)]
 pub(crate) struct Args {
     #[clap(subcommand)]
     pub(crate) command: Commands,
@@ -16,8 +27,17 @@ pub(crate) struct Args {
     pub(crate) token:   Option<String>,
 }
 
+pub(crate) fn print_completions<G: Generator>(gen: G, cmd: &mut Command) {
+    generate(gen, cmd, cmd.get_name().to_string(), &mut io::stdout());
+}
+
 #[derive(Subcommand, Debug)]
 pub(crate) enum Commands {
+    /// If provided, outputs the completion file for given shell
+    Generate {
+        #[clap(arg_enum)]
+        generator: Shell,
+    },
     /// Run the 1511 style test suite on the specified file.
     Style { file: String },
     /// Run the autotest suite on the specified project.
