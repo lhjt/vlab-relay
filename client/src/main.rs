@@ -5,6 +5,7 @@ use clap::{IntoApp, StructOpt};
 use crate::cli::print_completions;
 
 mod cli;
+mod client;
 mod config;
 mod relay;
 
@@ -35,4 +36,6 @@ async fn main() {
             config.check_complete();
         },
     }
+
+    let _client = client::RpcClient::new(config).await;
 }
