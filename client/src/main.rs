@@ -8,7 +8,8 @@ mod cli;
 mod config;
 mod relay;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let opts = cli::Args::parse();
     let mut config = config::get_config();
 
