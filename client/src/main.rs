@@ -1,5 +1,8 @@
+#![warn(clippy::pedantic)]
+
 use clap::{Parser, Subcommand};
 
+#[allow(clippy::doc_markdown)]
 /// The VLab relay client. Allows you to execute commands on your VLab instance
 /// from your local working environment. It automatically captures all of the
 /// files in your cwd when you execute the command, and transfers this context
