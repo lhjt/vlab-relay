@@ -21,6 +21,6 @@ tracing-subscriber = "0.3.8"
 uuid = { version = "0.8.2", features = ["v4"] }
 
 [build-dependencies]
-tonic-build = { version = "0.6.2", features = ["compression", "prost"] }
+tonic-build = { version = "0.7.0", features = ["compression", "prost"] }
 
 [features]
