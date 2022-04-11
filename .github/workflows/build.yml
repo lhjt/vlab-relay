@@ -25,7 +25,7 @@ jobs:
         with:
           command: build
           args: --release --bin client
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: client-${{ matrix.os }}
           path: target/release/client
@@ -45,7 +45,7 @@ jobs:
         with:
           command: build
           args: --release --bin runner
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: runner-linux
           path: target/release/runner
