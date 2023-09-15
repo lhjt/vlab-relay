@@ -24,4 +24,4 @@ whoami = "1.4.0"
 [features]
 
 [build-dependencies]
-prost-build = "0.10.3"
+prost-build = "0.12.1"
